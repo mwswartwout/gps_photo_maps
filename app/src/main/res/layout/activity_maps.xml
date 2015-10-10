@@ -15,4 +15,28 @@
         android:id="@+id/photobutton"
         android:text="Take a picture"/>
 
-    </FrameLayout>
+    <TextView
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="50dp"
+        android:id="@+id/displaylongitude"
+        android:layout_gravity="right|bottom" />
+    <TextView
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="75dp"
+        android:layout_marginBottom="50dp"
+        android:id="@+id/displaylatitude"
+        android:layout_gravity="right|bottom"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/yourlocation"
+        android:layout_gravity="right|bottom"
+        android:text="Your Location is:"
+        android:layout_marginRight="150dp"
+        android:layout_marginBottom="50dp"
+        />
+
+</FrameLayout>
