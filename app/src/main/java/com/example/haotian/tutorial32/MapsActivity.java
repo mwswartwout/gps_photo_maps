@@ -93,7 +93,6 @@ public class MapsActivity extends FragmentActivity implements
         }
 
         buildGoogleApiClient();
-        mGoogleApiClient.connect();
         createLocationRequest();
 
     }
@@ -215,6 +214,7 @@ public class MapsActivity extends FragmentActivity implements
     protected void onPause(){
         super.onPause();
         stopLocationUpdates();
+        mGoogleApiClient.disconnect();
     }
 
 
@@ -225,6 +225,7 @@ public class MapsActivity extends FragmentActivity implements
         if(mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+        mGoogleApiClient.connect();
 
     }
 
