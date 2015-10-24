@@ -1,6 +1,9 @@
 package com.example.haotian.tutorial32;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -13,8 +16,11 @@ import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.telecom.ConnectionRequest;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,14 +38,17 @@ import org.w3c.dom.Text;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
+{
     public static final String TAG = "MapsActivity";
     public static final int THUMBNAIL = 1;
 
@@ -61,7 +70,12 @@ public class MapsActivity extends FragmentActivity implements
 
     private TextView displaylatitude;
     private TextView displaylongitude;
+    private ImageView mImageView;
 
+    public EditText mEditTitle;
+    public EditText mEditSnippet;
+    public String mTitle;
+    public String mSnippet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +86,7 @@ public class MapsActivity extends FragmentActivity implements
         picButton = (Button) findViewById(R.id.photobutton);
         displaylatitude = (TextView) findViewById(R.id.displaylatitude);
         displaylongitude = (TextView) findViewById(R.id.displaylongitude);
+
 
         picButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,6 +107,43 @@ public class MapsActivity extends FragmentActivity implements
             }
         }
 
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(final Marker marker) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+
+                LayoutInflater inflater = getLayoutInflater();
+
+                builder.setTitle("Marker Info editor")
+                        .setCancelable(true)
+                        .setView(inflater.inflate(R.layout.edit_markerinfo,null))
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+
+                                mTitle = mEditTitle.getText().toString();
+                                mSnippet = mEditSnippet.getText().toString();
+
+                            }
+                        })
+                        .setNegativeButton("Cancel",null);
+
+                View view = LayoutInflater.from(getApplication()).inflate(R.layout.edit_markerinfo, null);
+
+                mEditTitle = (EditText) view.findViewById(R.id.title);
+                mEditSnippet = (EditText) view.findViewById(R.id.snippet);
+
+                builder.create().show();
+
+                marker.setTitle(mTitle);
+                marker.setSnippet(mSnippet);
+                marker.showInfoWindow();
+
+                return false;
+            }
+        });
+
+        mMap.setMyLocationEnabled(true);
         buildGoogleApiClient();
         createLocationRequest();
 
@@ -113,39 +165,71 @@ public class MapsActivity extends FragmentActivity implements
     //Start camera activity to take a photo
     private  void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File tempdir = null;
 
+        File tempdir = null;
         if (takePictureIntent.resolveActivity(getPackageManager())!=null){
+            /*
             try {
                 tempdir = createImageFile();
             } catch (IOException e){
                 e.printStackTrace();
             }
             if ( tempdir != null  ){
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempdir));
+                //takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempdir));
             }
-
+            */
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE_CODE);
         }
     }
 
     @Override
     //do Writing CSV file for homework 2
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    protected void onActivityResult (int requestCode, int resultCode, Intent data)  {
+
+        //super.onActivityResult(requestCode,resultCode,data);
+
         if (requestCode == REQUEST_IMAGE_CAPTURE_CODE){
             if (resultCode == RESULT_OK ){
                 // photo is captured, save timestamp and the last available coordinate data to the CSV file
-                double latitude = mCurrentLocation.getLatitude();
-                double longitude = mCurrentLocation.getLongitude();
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String mRowInput = timeStamp+","+latitude +","+longitude+"\n";
+                if (mCurrentLocation != null) {
+                    double latitude = mCurrentLocation.getLatitude();
+                    double longitude = mCurrentLocation.getLongitude();
 
-                try {
-                    BufferedWriter bfw1 = new BufferedWriter(new FileWriter(Homework2,true));
-                    bfw1.write(mRowInput);
-                    bfw1.close();
-                } catch (IOException e){
-                    e.printStackTrace();
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String mRowInput = timeStamp + "," + latitude + "," + longitude + "\n";
+
+                    try {
+                        BufferedWriter bfw1 = new BufferedWriter(new FileWriter(Homework2, true));
+                        bfw1.write(mRowInput);
+                        bfw1.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Bundle extras = data.getExtras();
+                    if (extras.keySet().contains("data")) {
+
+                        try {
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+                            //save imageBitmap to storage
+                            String imageFileName = "JPEG_" + timeStamp + "_.jpg";
+                            File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera");
+
+                            File image = new File(storageDir,imageFileName);
+                            FileOutputStream out = new FileOutputStream(image);
+                            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                            out.flush();
+                            out.close();
+
+                            mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+                                            .icon(BitmapDescriptorFactory.fromBitmap(imageBitmap))
+                            );
+                        } catch (IOException e){
+                            e.printStackTrace();
+                        }
+                        //mImageView.setImageBitmap(imageBitmap);
+                    }
                 }
 
             }else if  (resultCode == RESULT_CANCELED){
@@ -155,6 +239,46 @@ public class MapsActivity extends FragmentActivity implements
             }
         }
     }
+
+
+/*
+    @Override
+    public boolean onMarkerClick (Marker marker){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+
+        LayoutInflater inflater = getLayoutInflater();
+
+        builder.setTitle("Marker Info editor")
+                .setView(inflater.inflate(R.layout.edit_markerinfo,null))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+
+        builder.create().show();
+
+        mTitle = mEditTitle.getText().toString();
+        mSnippet = mEditSnippet.getText().toString();
+
+        marker.setTitle(mTitle);
+        marker.setSnippet(mSnippet);
+
+        return false;
+    }
+    */
+
+
+
+
 
     //Connect with the GoogleApiClient
     protected synchronized void buildGoogleApiClient() {
@@ -168,8 +292,8 @@ public class MapsActivity extends FragmentActivity implements
     //Create locationrequest
     protected void createLocationRequest(){
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(2000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -192,22 +316,26 @@ public class MapsActivity extends FragmentActivity implements
     //startLocationUpdates in onResume() and onConnected()
     protected void startLocationUpdates() {
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        mRequestingLocationUpdates = true;
+        mRequestingLocationUpdates = false;
     }
 
     //stopLocationUpdates in onPause()
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
-        mRequestingLocationUpdates = false;
+        mRequestingLocationUpdates = true;
     }
 
     @Override
     public void onLocationChanged (Location location){
+
         mCurrentLocation = location;
+
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
-        displaylatitude.setText(String.format("%.3f",latitude));
-        displaylongitude.setText(String.format("%.3f",longitude));
+
+        displaylatitude.setText(String.format("%.5f",latitude));
+        displaylongitude.setText(String.format("%.5f",longitude));
+
     }
 
     @Override
@@ -222,10 +350,11 @@ public class MapsActivity extends FragmentActivity implements
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-        if(mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
-            startLocationUpdates();
-        }
         mGoogleApiClient.connect();
+
+        //if(mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
+          //  startLocationUpdates();
+       // }
 
     }
 
