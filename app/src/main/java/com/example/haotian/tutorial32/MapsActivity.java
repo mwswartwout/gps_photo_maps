@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.telecom.ConnectionRequest;
+import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,12 +75,15 @@ public class MapsActivity extends FragmentActivity implements
 
     public EditText mEditTitle;
     public EditText mEditSnippet;
-    public String mTitle;
-    public String mSnippet;
+    public View MarkerInfoEditView;
+    public String mTitle = "Edit title";
+    public String mSnippet = "Edit Snippet";
+    public Marker mMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
 
@@ -109,35 +113,13 @@ public class MapsActivity extends FragmentActivity implements
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMarkerClick(final Marker marker) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+            public boolean onMarkerClick(Marker marker) {
 
-                LayoutInflater inflater = getLayoutInflater();
+                Dialog MarkerInfo = MarkerInfoDialog(marker);
 
-                builder.setTitle("Marker Info editor")
-                        .setCancelable(true)
-                        .setView(inflater.inflate(R.layout.edit_markerinfo,null))
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
+                MarkerInfo.show();
 
-                                mTitle = mEditTitle.getText().toString();
-                                mSnippet = mEditSnippet.getText().toString();
-
-                            }
-                        })
-                        .setNegativeButton("Cancel",null);
-
-                View view = LayoutInflater.from(getApplication()).inflate(R.layout.edit_markerinfo, null);
-
-                mEditTitle = (EditText) view.findViewById(R.id.title);
-                mEditSnippet = (EditText) view.findViewById(R.id.snippet);
-
-                builder.create().show();
-
-                marker.setTitle(mTitle);
-                marker.setSnippet(mSnippet);
-                marker.showInfoWindow();
+                marker.hideInfoWindow();
 
                 return false;
             }
@@ -147,6 +129,52 @@ public class MapsActivity extends FragmentActivity implements
         buildGoogleApiClient();
         createLocationRequest();
 
+    }
+
+    private Dialog MarkerInfoDialog(Marker marker) {
+        mMarker = marker;
+
+        mTitle = mMarker.getTitle();
+        mSnippet = mMarker.getSnippet();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        //MarkerInfoEditView = inflater.inflate(R.layout.edit_markerinfo, null);
+        //mEditTitle.setText(mTitle, TextView.BufferType.NORMAL);
+        //mEditSnippet.setText(mSnippet,TextView.BufferType.NORMAL);
+
+        builder.setTitle("Marker Info editor")
+                .setCancelable(true)
+                .setView(inflater.inflate(R.layout.edit_markerinfo,null))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        Dialog f = (Dialog) dialog;
+
+                        mEditTitle = (EditText) f.findViewById(R.id.title);
+                        mEditSnippet = (EditText) f.findViewById(R.id.snippet);
+
+                        mTitle = mEditTitle.getText().toString();
+                        mSnippet = mEditSnippet.getText().toString();
+
+                        mMarker.setTitle(mTitle);
+                        mMarker.setSnippet(mSnippet);
+
+                        mMarker.showInfoWindow();
+                        dialog.dismiss();
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        return builder.create();
     }
 
 
