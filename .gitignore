@@ -29,5 +29,5 @@ proguard/
 *.log
 
 # LaTeX
-# *.gz
-# *.aux
+*.gz
+*.aux
