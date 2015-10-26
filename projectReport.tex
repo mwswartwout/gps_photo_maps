@@ -12,6 +12,9 @@
 Homework 1 requires us to make “TAKE A PICTURE” button functional. After clicking this button, a camera activity should be opened which allows us to take a photo and save it to a specific directory under external storage. 
 In order to open another activity in the current activity, we need to use Intent class to tell our current activity what operation we want to perform. In the function below
 \section{Homework 2}
+For Homework 2, we used the application to take photos of ten different buildings around campus. For each photo, the application saves the timestamp and the GPS coordinates(latitude and longitude) into a CSV file in the DCIM folder. The Android Camera encodes each photo in data of type Intent. This data is used by the onActivityResult method
+
+If the photo was successfully captured, the method saves the timestamp and the last available coordinate data to the CSV file. The method then sets the photo data as an imageBitmap, which is compressed in to a .PNG file. Lastly, the method adds a marker to the Google Map mMap with the coordinates for the marker position and the photo as the icon.
 \section{Homework 3}
 \section{Homework 4}
 \end{document}
