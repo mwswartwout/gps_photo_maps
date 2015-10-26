@@ -37,12 +37,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.w3c.dom.Text;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.Buffer;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -421,7 +418,32 @@ public class MapsActivity extends FragmentActivity implements
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(20, 20)).title("EECS397/600"));
+        mMap.addMarker( new MarkerOptions()
+                        .position(new LatLng(20, 20))
+                        .title("EECS397/600"));
+
+        InputStream in = null;
+        try {
+            in = new BufferedInputStream(new FileInputStream(Homework2)); // get Homework2 file
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            String currentLine = reader.readLine();
+            if (reader.readLine() != null) currentLine = reader.readLine(); // Skip to 2nd line because first line is header info
+            while (currentLine != null) // Loop through all lines in CSV file if it exists
+            {
+                String[] values = currentLine.split(","); // Split line by commas, giving three values: TIMESTAP, LAT, LONG
+                String filepath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM +"/Camera").getAbsolutePath() + "/JPEG_" + values[0] +"_.jpg"; // Get filepath of current JPG
+                Log.d("MarkerCreate", "Filepath for next marker is " +filepath);
+                mMap.addMarker( new MarkerOptions()
+                                .position(new LatLng(Double.parseDouble(values[1]), Double.parseDouble(values[2]))) // Get Latitude and Longitude values
+                                .icon(BitmapDescriptorFactory.fromPath(filepath)) // filepath
+                );
+                Log.d("MarkerCreate", "Created Marker with timestamp" + values[0] +"and LatLng" +values[1] +"," +values[2]);
+                currentLine = reader.readLine(); // Go to next line
+            }
+        }
+        catch (Exception FileNotFoundException){
+            Log.e("FileOpen", "File Not Found Exception while creating markers");
+        }
     }
 
     //must implement abstract method onConnectionFailed()
