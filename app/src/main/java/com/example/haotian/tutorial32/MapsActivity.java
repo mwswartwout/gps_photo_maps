@@ -138,10 +138,6 @@ public class MapsActivity extends FragmentActivity implements
 
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        //MarkerInfoEditView = inflater.inflate(R.layout.edit_markerinfo, null);
-        //mEditTitle.setText(mTitle, TextView.BufferType.NORMAL);
-        //mEditSnippet.setText(mSnippet,TextView.BufferType.NORMAL);
-
         builder.setTitle("Marker Info editor")
                 .setCancelable(true)
                 .setView(inflater.inflate(R.layout.edit_markerinfo,null))
@@ -172,19 +168,6 @@ public class MapsActivity extends FragmentActivity implements
                 });
 
         return builder.create();
-    }
-
-
-    //create the desired image name and directory to save for the next taken photo
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera");
-        if (storageDir == null) {
-            storageDir.mkdir();
-        }
-        File image = File.createTempFile(imageFileName,".jpg",storageDir);
-        return image;
     }
 
     //Start camera activity to take a photo
@@ -241,7 +224,7 @@ public class MapsActivity extends FragmentActivity implements
                             String imageFileName = "JPEG_" + timeStamp + "_.jpg";
                             File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera");
 
-                            File image = new File(storageDir,imageFileName);
+                            File image = new File(storageDir, imageFileName);
                             FileOutputStream out = new FileOutputStream(image);
                             imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                             out.flush();
@@ -250,10 +233,10 @@ public class MapsActivity extends FragmentActivity implements
                             mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
                                             .icon(BitmapDescriptorFactory.fromBitmap(imageBitmap))
                             );
+
                         } catch (IOException e){
                             e.printStackTrace();
                         }
-                        //mImageView.setImageBitmap(imageBitmap);
                     }
                 }
 
@@ -264,46 +247,6 @@ public class MapsActivity extends FragmentActivity implements
             }
         }
     }
-
-
-/*
-    @Override
-    public boolean onMarkerClick (Marker marker){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-
-        LayoutInflater inflater = getLayoutInflater();
-
-        builder.setTitle("Marker Info editor")
-                .setView(inflater.inflate(R.layout.edit_markerinfo,null))
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                });
-
-        builder.create().show();
-
-        mTitle = mEditTitle.getText().toString();
-        mSnippet = mEditSnippet.getText().toString();
-
-        marker.setTitle(mTitle);
-        marker.setSnippet(mSnippet);
-
-        return false;
-    }
-    */
-
-
-
-
 
     //Connect with the GoogleApiClient
     protected synchronized void buildGoogleApiClient() {
@@ -376,11 +319,6 @@ public class MapsActivity extends FragmentActivity implements
         super.onResume();
         setUpMapIfNeeded();
         mGoogleApiClient.connect();
-
-        //if(mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
-          //  startLocationUpdates();
-       // }
-
     }
 
     /**
@@ -457,21 +395,4 @@ public class MapsActivity extends FragmentActivity implements
     public void onConnectionSuspended(int i){
 
     }
-
-        /*
-    @Override
-    public void onProviderEnabled(String string){
-
-    }
-
-    @Override
-    public void onProviderDisabled(String string){
-
-    }
-
-    @Override
-    public void onStatusChanged(String string,int i, Bundle bundle){
-    }
-    */
-
 }
