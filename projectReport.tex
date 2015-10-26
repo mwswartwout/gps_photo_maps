@@ -22,6 +22,9 @@ MediaStore.ACTION\_IMAGE\_CAPTURE is a standard intent action, which can be used
 However, to get the thumbnails and display them on the map, we can’t use putExtra() because once the image is saved by using putExtra(),  then in onActivityResult(…) function data.getExtras() will return null. So we need other approach to save the thumbnail.
   
 \section{Homework 2}
+For Homework 2, we used the application to take photos of ten different buildings around campus. For each photo, the application saves the timestamp and the GPS coordinates(latitude and longitude) into a CSV file in the DCIM folder. The Android Camera encodes each photo in data of type Intent. This data is used by the onActivityResult method
+
+If the photo was successfully captured, the method saves the timestamp and the last available coordinate data to the CSV file. The method then sets the photo data as an imageBitmap, which is compressed in to a .PNG file. Lastly, the method adds a marker to the Google Map mMap with the coordinates for the marker position and the photo as the icon.
 \section{Homework 3}
 For getting the thumbnails, we implemented two separate methods. The first creates a marker and gets the thumbnail for a photo immediately after it is taken. The second checks to see if any thumbnails exist when the app is first launched (i.e. photos were taken with the app on a previous execution) and creates those markers.
 
